@@ -1,0 +1,9 @@
+uvicorn
+
+gunicorn
+
+psycopg2
+
+boto3
+
+aws-s3-sync
