@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  graph-service:
+    build: .
+    environment:
+      - GRAPH_SERVICE_PORT=8000
+      - DATABASE_URL=postgresql://user:password@database-service:5432/database
+      - STORAGE_BUCKET_NAME=storage-bucket
+      - AWS_REGION=us-west-2
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - '8000:8000'
+    depends_on:
+      - database-service
+      - storage-service
+    restart: always
+
+  database-service:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=database
+    ports:
+      - '5432:5432'
+    restart: always
+
+  storage-service:
+    image: amazon/aws-s3-sync
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-west-2
+      - S3_BUCKET_NAME=storage-bucket
+    volumes:
+      - ./storage:/app/storage
+    restart: always
+
+  frontend-service:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      - graph-service
+    restart: always
